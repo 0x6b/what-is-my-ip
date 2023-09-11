@@ -1,7 +1,8 @@
-use std::{error::Error, str::FromStr};
+use std::{error::Error, net::IpAddr, str::FromStr};
+
+use reqwest::header::HeaderMap;
 
 use crate::coordinate::Coordinate;
-use reqwest::header::HeaderMap;
 
 /// Metadata contains the metadata returned by the Cloudflare.
 #[derive(Debug, Clone, Default)]
@@ -10,7 +11,7 @@ pub struct Metadata {
     pub coordinate: Coordinate,
 
     /// IP address of the client.
-    pub ip: Option<String>,
+    pub ip_address: Option<IpAddr>,
 
     /// City of the client.
     pub city: Option<String>,
@@ -37,7 +38,16 @@ impl TryFrom<&HeaderMap> for Metadata {
     fn try_from(headers: &HeaderMap) -> Result<Self, Self::Error> {
         let latitude = parse_header::<f64>(headers, "latitude")?;
         let longitude = parse_header::<f64>(headers, "longitude")?;
-        let ip = parse_header::<String>(headers, "ip")?;
+
+        let ip_address = parse_header::<String>(headers, "ip")?.map_or_else(
+            || Ok(None),
+            |ip| {
+                ip.parse::<IpAddr>()
+                    .map(Some)
+                    .map_err(|e| Box::new(e) as Box<dyn Error>)
+            },
+        )?;
+
         let city = parse_header::<String>(headers, "city")?;
         let country = parse_header::<String>(headers, "country")?;
         let asn = parse_header::<String>(headers, "asn").map_or_else(
@@ -50,7 +60,7 @@ impl TryFrom<&HeaderMap> for Metadata {
 
         Ok(Self {
             coordinate: (latitude, longitude).into(),
-            ip,
+            ip_address,
             city,
             country,
             asn,
