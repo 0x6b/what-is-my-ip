@@ -1,41 +1,34 @@
 pub mod coordinate;
 pub mod metadata;
 
-use std::{collections::HashMap, error::Error};
-
-use reqwest::blocking::Client;
-
 use crate::metadata::Metadata;
 
 /// WhatIsMyIpClient is a client to get metadata from Cloudflare.
 #[derive(Default)]
-pub struct WhatIsMyIpClient {
-    client: Client,
-}
+pub struct Client {}
 
-impl WhatIsMyIpClient {
-    pub fn get(&self) -> Result<Metadata, Box<dyn Error>> {
+impl Client {
+    pub fn get() -> Result<Metadata, Box<dyn std::error::Error>> {
+        let response = ureq::get("https://speed.cloudflare.com/__down?bytes=0").call()?;
+
         Metadata::try_from(
-            &self
-                .client
-                .get("https://speed.cloudflare.com/__down?bytes=0")
-                .send()?
-                .headers()
-                .into_iter()
-                .filter(|(k, _)| k.as_str().starts_with("cf-"))
-                .map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string()))
-                .collect::<HashMap<String, String>>(),
+            &response
+                .headers_names()
+                .iter()
+                .filter(|k| k.as_str().starts_with("cf-"))
+                .map(|k| (k.to_string(), response.header(k).unwrap().to_string()))
+                .collect::<_>(),
         )
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::WhatIsMyIpClient;
+    use crate::Client;
 
     #[test]
     fn test() {
-        let metadata = WhatIsMyIpClient::default().get().unwrap();
-        println!("Metadata: {metadata:#?}");
+        let metadata = Client::get().unwrap();
+        assert_eq!(metadata.ip_address.is_some(), true);
     }
 }

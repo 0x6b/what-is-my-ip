@@ -1,6 +1,7 @@
-use what_is_my_ip::WhatIsMyIpClient;
+use what_is_my_ip::Client;
 
-fn main() {
-    let metadata = WhatIsMyIpClient::default().get().unwrap();
-    println!("{metadata}");
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", Client::get()?);
+
+    Ok(())
 }

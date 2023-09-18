@@ -8,4 +8,4 @@ name = "what_is_my_ip"
 path = "src/lib.rs"
 
 [dependencies]
-reqwest = { version = "0.11.20", features = ["blocking"] }
+ureq = "2.7.1"
