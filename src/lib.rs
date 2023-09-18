@@ -1,7 +1,7 @@
 pub mod coordinate;
 pub mod metadata;
 
-use std::error::Error;
+use std::{collections::HashMap, error::Error};
 
 use reqwest::blocking::Client;
 
@@ -14,16 +14,17 @@ pub struct WhatIsMyIpClient {
 }
 
 impl WhatIsMyIpClient {
-    pub fn new_with_client(client: Client) -> WhatIsMyIpClient {
-        WhatIsMyIpClient { client }
-    }
-
     pub fn get(&self) -> Result<Metadata, Box<dyn Error>> {
         Metadata::try_from(
-            self.client
+            &self
+                .client
                 .get("https://speed.cloudflare.com/__down?bytes=0")
                 .send()?
-                .headers(),
+                .headers()
+                .into_iter()
+                .filter(|(k, _)| k.as_str().starts_with("cf-"))
+                .map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string()))
+                .collect::<HashMap<String, String>>(),
         )
     }
 }

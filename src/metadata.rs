@@ -1,6 +1,4 @@
-use std::{error::Error, fmt::Display, net::IpAddr, str::FromStr};
-
-use reqwest::header::HeaderMap;
+use std::{collections::HashMap, error::Error, fmt::Display, net::IpAddr, str::FromStr};
 
 use crate::coordinate::Coordinate;
 
@@ -49,10 +47,10 @@ impl Display for Metadata {
     }
 }
 
-impl TryFrom<&HeaderMap> for Metadata {
+impl TryFrom<&HashMap<String, String>> for Metadata {
     type Error = Box<dyn Error>;
 
-    fn try_from(headers: &HeaderMap) -> Result<Self, Self::Error> {
+    fn try_from(headers: &HashMap<String, String>) -> Result<Self, Self::Error> {
         let coordinate = (
             get_header_value::<f64>(headers, "latitude")?,
             get_header_value::<f64>(headers, "longitude")?,
@@ -96,7 +94,10 @@ impl TryFrom<&HeaderMap> for Metadata {
 /// # Returns
 ///
 /// The parsed value.
-fn get_header_value<'a, T>(headers: &HeaderMap, name: &'a str) -> Result<T, Box<dyn Error>>
+fn get_header_value<'a, T>(
+    headers: &HashMap<String, String>,
+    name: &'a str,
+) -> Result<T, Box<dyn Error>>
 where
     T: FromStr + Default,
     <T as FromStr>::Err: Error + 'static,
@@ -122,7 +123,7 @@ where
 ///
 /// The parsed value.
 fn get_header_value_and_process<'a, T, U, F>(
-    headers: &HeaderMap,
+    headers: &HashMap<String, String>,
     name: &'a str,
     processor: F,
 ) -> Result<U, Box<dyn Error>>
@@ -133,10 +134,9 @@ where
     F: Fn(T) -> U,
 {
     headers
-        .get(format!("cf-meta-{name}"))
+        .get(&format!("cf-meta-{name}"))
         .map(|v| {
-            v.to_str()
-                .map_err(|e| Box::new(e) as Box<dyn Error>)?
+            v.as_str()
                 .parse::<T>()
                 .map_err(|e| Box::new(e) as Box<dyn Error>)
                 .map(|s| processor(s))
