@@ -69,6 +69,10 @@ impl TryFrom<&HeaderMap> for Metadata {
 /// - `headers` - The headers to parse.
 /// - `name` - The name of the header to parse.
 ///
+/// ## Generic Arguments
+///
+/// - `T` - The type of the parsed and returned value.
+///
 /// # Returns
 ///
 /// The parsed value.
@@ -87,6 +91,12 @@ where
 /// - `headers` - The headers to parse.
 /// - `name` - The name of the header to parse.
 /// - `processor` - The function to process the parsed value.
+///
+/// ## Generic Arguments
+///
+/// - `T` - The type of the parsed value.
+/// - `U` - The type of the processed and returned value.
+/// - `F` - The type of the processor function.
 ///
 /// # Returns
 ///
