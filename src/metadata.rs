@@ -22,9 +22,6 @@ pub struct Metadata {
     /// ASN of the client.
     pub asn: String,
 
-    /// Colo of the client.
-    pub colo: Option<String>,
-
     /// Timezone of the client.
     pub timezone: Option<String>,
 
@@ -54,7 +51,6 @@ impl TryFrom<&HeaderMap> for Metadata {
             |_| "".to_string(),
             |val| val.map_or_else(|| "".to_string(), |asn| format!("AS{}", asn)),
         );
-        let colo = parse_header::<String>(headers, "colo")?;
         let timezone = parse_header::<String>(headers, "timezone")?;
         let request_time = parse_header::<i64>(headers, "request-time")?;
 
@@ -64,7 +60,6 @@ impl TryFrom<&HeaderMap> for Metadata {
             city,
             country,
             asn,
-            colo,
             timezone,
             request_time,
         })

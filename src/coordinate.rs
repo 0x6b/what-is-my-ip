@@ -4,11 +4,11 @@ pub struct Coordinate {
     pub longitude: f64,
 }
 
-impl From<(Option<f64>, Option<f64>)> for Coordinate {
-    fn from((latitude, longitude): (Option<f64>, Option<f64>)) -> Self {
+impl From<(f64, f64)> for Coordinate {
+    fn from((latitude, longitude): (f64, f64)) -> Self {
         Self {
-            latitude: latitude.unwrap_or_default(),
-            longitude: longitude.unwrap_or_default(),
+            latitude,
+            longitude,
         }
     }
 }
