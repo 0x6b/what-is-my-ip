@@ -1,4 +1,4 @@
-use std::{error::Error, net::IpAddr, str::FromStr};
+use std::{error::Error, fmt::Display, net::IpAddr, str::FromStr};
 
 use reqwest::header::HeaderMap;
 
@@ -27,6 +27,26 @@ pub struct Metadata {
 
     /// Request time of the client.
     pub request_time: i64,
+}
+
+impl Display for Metadata {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            r#"- IP address: {}
+- Coordinate: {}
+- City: {}
+- Country: {}
+- Network: {}
+- Timezone: {}"#,
+            self.ip_address.unwrap_or(IpAddr::from([0, 0, 0, 0])),
+            self.coordinate,
+            self.city,
+            self.country,
+            self.asn,
+            self.timezone,
+        )
+    }
 }
 
 impl TryFrom<&HeaderMap> for Metadata {
