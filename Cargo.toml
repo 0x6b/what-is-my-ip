@@ -8,4 +8,5 @@ name = "what_is_my_ip"
 path = "src/lib.rs"
 
 [dependencies]
+chrono-tz = "0.8.3"
 ureq = "2.7.1"

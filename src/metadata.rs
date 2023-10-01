@@ -1,9 +1,10 @@
 use std::{collections::HashMap, error::Error, fmt::Display, net::IpAddr, str::FromStr};
+use chrono_tz::Tz;
 
 use crate::coordinate::Coordinate;
 
 /// Metadata contains the metadata returned by the Cloudflare.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Metadata {
     /// Coordinate of the client.
     pub coordinate: Coordinate,
@@ -21,7 +22,7 @@ pub struct Metadata {
     pub asn: String,
 
     /// Timezone of the client.
-    pub timezone: String,
+    pub timezone: Tz,
 
     /// Request time of the client.
     pub request_time: i64,
@@ -65,7 +66,8 @@ impl TryFrom<&HashMap<String, String>> for Metadata {
         let asn = get_header_value_and_process::<String, String, _>(headers, "asn", |asn| {
             format!("AS{}", asn)
         })?;
-        let timezone = get_header_value::<String>(headers, "timezone")?;
+        let timezone = get_header_value::<String>(headers, "timezone")?
+            .parse::<Tz>()?;
         let request_time = get_header_value::<i64>(headers, "request-time")?;
 
         Ok(Self {
