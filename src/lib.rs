@@ -29,6 +29,6 @@ mod tests {
     #[test]
     fn test() {
         let metadata = Client::get().unwrap();
-        assert_eq!(metadata.ip_address.is_some(), true);
+        assert!(metadata.ip_address.is_some());
     }
 }
