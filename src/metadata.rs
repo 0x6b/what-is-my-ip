@@ -94,15 +94,15 @@ impl TryFrom<&HashMap<String, String>> for Metadata {
 /// # Returns
 ///
 /// The parsed value.
-fn get_header_value<'a, T>(
+fn get_header_value<T>(
     headers: &HashMap<String, String>,
-    name: &'a str,
+    name: &str,
 ) -> Result<T, Box<dyn Error>>
 where
     T: FromStr + Default,
     <T as FromStr>::Err: Error + 'static,
 {
-    get_header_value_and_process(headers, name, |x: T| x.into())
+    get_header_value_and_process(headers, name, |x: T| x)
 }
 
 /// Get a header value and process it with given function.
@@ -122,10 +122,10 @@ where
 /// # Returns
 ///
 /// The parsed value.
-fn get_header_value_and_process<'a, T, U, F>(
+fn get_header_value_and_process<T, U, F>(
     headers: &HashMap<String, String>,
-    name: &'a str,
-    processor: F,
+    name: &str,
+    mut processor: F,
 ) -> Result<U, Box<dyn Error>>
 where
     T: FromStr,
@@ -139,7 +139,7 @@ where
             v.as_str()
                 .parse::<T>()
                 .map_err(|e| Box::new(e) as Box<dyn Error>)
-                .map(|s| processor(s))
+                .map(&mut processor)
         })
         .unwrap_or(Ok(U::default()))
 }
