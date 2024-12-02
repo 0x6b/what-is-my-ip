@@ -11,3 +11,4 @@ path = "src/lib.rs"
 anyhow = "1.0.93"
 ureq = "2.7.1"
 jiff = "0.1.15"
+clap = { version = "4.5.21", features = ["derive"] }
