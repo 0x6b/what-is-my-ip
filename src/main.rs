@@ -1,4 +1,5 @@
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+use anyhow::Result;
+fn main() -> Result<()> {
     println!("{}", what_is_my_ip::Client::get()?);
 
     Ok(())

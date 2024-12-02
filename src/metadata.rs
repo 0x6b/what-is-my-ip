@@ -1,7 +1,8 @@
-use anyhow::{anyhow, Result, Error};
-use std::{collections::HashMap,  fmt::Display, net::IpAddr, str::FromStr};
-use jiff::tz::TimeZone;
-use crate::coordinate::Coordinate;
+use std::{fmt, fmt::Display, net::IpAddr};
+
+use anyhow::{Error, Result};
+
+use crate::{Coordinate, Headers, TimeZone};
 
 /// Metadata contains the metadata returned by the Cloudflare.
 #[derive(Debug, Clone)]
@@ -29,7 +30,7 @@ pub struct Metadata {
 }
 
 impl Display for Metadata {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             r#"- IP address: {}
@@ -48,99 +49,18 @@ impl Display for Metadata {
     }
 }
 
-impl TryFrom<&HashMap<String, String>> for Metadata {
+impl TryFrom<&Headers> for Metadata {
     type Error = Error;
 
-    fn try_from(headers: &HashMap<String, String>) -> Result<Self, Self::Error> {
-        let coordinate = (
-            get_header_value::<f64>(headers, "latitude")?,
-            get_header_value::<f64>(headers, "longitude")?,
-        )
-            .into();
-        let ip_address =
-            get_header_value_and_process::<String, Option<IpAddr>, _>(headers, "ip", |ip| {
-                ip.parse::<IpAddr>().ok()
-            })?;
-        let city = get_header_value::<String>(headers, "city")?;
-        let country = get_header_value::<String>(headers, "country")?;
-        let asn = get_header_value_and_process::<String, String, _>(headers, "asn", |asn| {
-            format!("AS{}", asn)
-        })?;
-        let timezone = TimeZone::get(&get_header_value::<String>(headers, "timezone")?)?;
-        let request_time = get_header_value::<i64>(headers, "request-time")?;
-
+    fn try_from(headers: &Headers) -> Result<Self, Self::Error> {
         Ok(Self {
-            coordinate,
-            ip_address,
-            city,
-            country,
-            asn,
-            timezone,
-            request_time,
+            coordinate: (headers.get::<f64>("latitude")?, headers.get::<f64>("longitude")?).into(),
+            ip_address: headers.get::<IpAddr>("ip").ok(),
+            city: headers.get::<String>("city")?,
+            country: headers.get::<String>("country")?,
+            asn: format!("AS{}", headers.get::<String>("asn")?),
+            timezone: headers.get::<TimeZone>("timezone")?,
+            request_time: headers.get::<i64>("request-time")?,
         })
     }
-}
-
-/// Get a header value.
-///
-/// # Arguments
-///
-/// - `headers` - The headers to parse.
-/// - `name` - The name of the header to parse.
-///
-/// ## Generic Arguments
-///
-/// - `T` - The type of the parsed and returned value.
-///
-/// # Returns
-///
-/// The parsed value.
-fn get_header_value<T>(
-    headers: &HashMap<String, String>,
-    name: &str,
-) -> Result<T>
-where
-    T: FromStr + Default,
-    <T as FromStr>::Err: Display,
-{
-    get_header_value_and_process(headers, name, |x: T| x)
-}
-
-/// Get a header value and process it with given function.
-///
-/// # Arguments
-///
-/// - `headers` - The headers to parse.
-/// - `name` - The name of the header to parse.
-/// - `processor` - The function to process the parsed value.
-///
-/// ## Generic Arguments
-///
-/// - `T` - The type of the parsed value.
-/// - `U` - The type of the processed and returned value.
-/// - `F` - The type of the processor function.
-///
-/// # Returns
-///
-/// The parsed value.
-fn get_header_value_and_process<T, U, F>(
-    headers: &HashMap<String, String>,
-    name: &str,
-    mut processor: F,
-) -> Result<U>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Display,
-    U: Default,
-    F: Fn(T) -> U,
-{
-    headers
-        .get(&format!("cf-meta-{name}"))
-        .map(|v| {
-            v.as_str()
-                .parse::<T>()
-                .map_err(|e| anyhow!("{e}"))
-                .map(&mut processor)
-        })
-        .unwrap_or(Ok(U::default()))
 }
