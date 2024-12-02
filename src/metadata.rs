@@ -1,5 +1,6 @@
-use std::{collections::HashMap, error::Error, fmt::Display, net::IpAddr, str::FromStr};
+use anyhow::{anyhow, Result, Error};
 use chrono_tz::Tz;
+use std::{collections::HashMap,  fmt::Display, net::IpAddr, str::FromStr};
 
 use crate::coordinate::Coordinate;
 
@@ -49,7 +50,7 @@ impl Display for Metadata {
 }
 
 impl TryFrom<&HashMap<String, String>> for Metadata {
-    type Error = Box<dyn Error>;
+    type Error = Error;
 
     fn try_from(headers: &HashMap<String, String>) -> Result<Self, Self::Error> {
         let coordinate = (
@@ -67,7 +68,7 @@ impl TryFrom<&HashMap<String, String>> for Metadata {
             format!("AS{}", asn)
         })?;
         let timezone = get_header_value::<String>(headers, "timezone")?
-            .parse::<Tz>()?;
+            .parse::<Tz>().map_err(|e| anyhow!("{e}"))?;
         let request_time = get_header_value::<i64>(headers, "request-time")?;
 
         Ok(Self {
@@ -99,10 +100,10 @@ impl TryFrom<&HashMap<String, String>> for Metadata {
 fn get_header_value<T>(
     headers: &HashMap<String, String>,
     name: &str,
-) -> Result<T, Box<dyn Error>>
+) -> Result<T>
 where
     T: FromStr + Default,
-    <T as FromStr>::Err: Error + 'static,
+    <T as FromStr>::Err: Display,
 {
     get_header_value_and_process(headers, name, |x: T| x)
 }
@@ -128,10 +129,10 @@ fn get_header_value_and_process<T, U, F>(
     headers: &HashMap<String, String>,
     name: &str,
     mut processor: F,
-) -> Result<U, Box<dyn Error>>
+) -> Result<U>
 where
     T: FromStr,
-    <T as FromStr>::Err: Error + 'static,
+    <T as FromStr>::Err: Display,
     U: Default,
     F: Fn(T) -> U,
 {
@@ -140,7 +141,7 @@ where
         .map(|v| {
             v.as_str()
                 .parse::<T>()
-                .map_err(|e| Box::new(e) as Box<dyn Error>)
+                .map_err(|e| anyhow!("{e}"))
                 .map(&mut processor)
         })
         .unwrap_or(Ok(U::default()))

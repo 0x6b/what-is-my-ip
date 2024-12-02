@@ -1,6 +1,7 @@
 pub mod coordinate;
 pub mod metadata;
 
+use anyhow::Result;
 use crate::metadata::Metadata;
 
 /// WhatIsMyIpClient is a client to get metadata from Cloudflare.
@@ -8,7 +9,7 @@ use crate::metadata::Metadata;
 pub struct Client {}
 
 impl Client {
-    pub fn get() -> Result<Metadata, Box<dyn std::error::Error>> {
+    pub fn get() -> Result<Metadata> {
         let response = ureq::get("https://speed.cloudflare.com/__down?bytes=0").call()?;
 
         Metadata::try_from(
