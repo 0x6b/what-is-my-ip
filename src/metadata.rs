@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result, Error};
-use chrono_tz::Tz;
 use std::{collections::HashMap,  fmt::Display, net::IpAddr, str::FromStr};
-
+use jiff::tz::TimeZone;
 use crate::coordinate::Coordinate;
 
 /// Metadata contains the metadata returned by the Cloudflare.
@@ -23,7 +22,7 @@ pub struct Metadata {
     pub asn: String,
 
     /// Timezone of the client.
-    pub timezone: Tz,
+    pub timezone: TimeZone,
 
     /// Request time of the client.
     pub request_time: i64,
@@ -44,7 +43,7 @@ impl Display for Metadata {
             self.city,
             self.country,
             self.asn,
-            self.timezone,
+            self.timezone.iana_name().unwrap_or("Unknown"),
         )
     }
 }
@@ -67,8 +66,7 @@ impl TryFrom<&HashMap<String, String>> for Metadata {
         let asn = get_header_value_and_process::<String, String, _>(headers, "asn", |asn| {
             format!("AS{}", asn)
         })?;
-        let timezone = get_header_value::<String>(headers, "timezone")?
-            .parse::<Tz>().map_err(|e| anyhow!("{e}"))?;
+        let timezone = TimeZone::get(&get_header_value::<String>(headers, "timezone")?)?;
         let request_time = get_header_value::<i64>(headers, "request-time")?;
 
         Ok(Self {

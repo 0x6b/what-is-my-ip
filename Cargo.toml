@@ -9,5 +9,5 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.93"
-chrono-tz = "0.8.3"
 ureq = "2.7.1"
+jiff = "0.1.15"
