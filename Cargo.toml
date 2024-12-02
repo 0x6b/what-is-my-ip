@@ -8,5 +8,8 @@ name = "what_is_my_ip"
 path = "src/lib.rs"
 
 [dependencies]
-chrono-tz = "0.8.3"
-ureq = "2.7.1"
+anyhow = "1.0.93"
+jiff = "0.1.15"
+clap = { version = "4.5.21", features = ["derive"] }
+reqwest = "0.12.9"
+tokio = { version = "1.41.1", features = ["macros", "rt"] }
