@@ -11,7 +11,7 @@ pub struct Metadata {
     pub coordinate: Coordinate,
 
     /// IP address of the client.
-    pub ip_address: Option<IpAddr>,
+    pub ip_address: IpAddr,
 
     /// City of the client.
     pub city: String,
@@ -23,7 +23,7 @@ pub struct Metadata {
     pub asn: String,
 
     /// Timezone of the client.
-    pub timezone: TimeZone,
+    pub time_zone: TimeZone,
 
     /// Request time of the client.
     pub request_time: i64,
@@ -38,13 +38,13 @@ impl Display for Metadata {
 - City: {}
 - Country: {}
 - Network: {}
-- Timezone: {}"#,
-            self.ip_address.unwrap_or(IpAddr::from([0, 0, 0, 0])),
+- Time zone: {}"#,
+            self.ip_address,
             self.coordinate,
             self.city,
             self.country,
             self.asn,
-            self.timezone.iana_name().unwrap_or("Unknown"),
+            self.time_zone.iana_name().unwrap_or("Unknown"),
         )
     }
 }
@@ -55,11 +55,11 @@ impl TryFrom<&Headers> for Metadata {
     fn try_from(headers: &Headers) -> Result<Self, Self::Error> {
         Ok(Self {
             coordinate: (headers.get::<f64>("latitude")?, headers.get::<f64>("longitude")?).into(),
-            ip_address: headers.get::<IpAddr>("ip").ok(),
+            ip_address: headers.get::<IpAddr>("ip").unwrap_or(IpAddr::from([0, 0, 0, 0])),
             city: headers.get::<String>("city")?,
             country: headers.get::<String>("country")?,
             asn: format!("AS{}", headers.get::<String>("asn")?),
-            timezone: headers.get::<TimeZone>("timezone")?,
+            time_zone: headers.get::<TimeZone>("timezone")?,
             request_time: headers.get::<i64>("request-time")?,
         })
     }

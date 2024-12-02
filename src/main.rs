@@ -1,5 +1,3 @@
-use std::net::IpAddr;
-
 use anyhow::Result;
 use clap::Parser;
 
@@ -11,14 +9,15 @@ struct Args {
     verbose: bool,
 }
 
-fn main() -> Result<()> {
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> Result<()> {
     let Args { verbose } = Args::parse();
-    let metadata = what_is_my_ip::Client::get()?;
+    let metadata = what_is_my_ip::Client::get().await?;
 
     if verbose {
         println!("{metadata}");
     } else {
-        println!("{}", metadata.ip_address.unwrap_or(IpAddr::from([0, 0, 0, 0])));
+        println!("{}", metadata.ip_address);
     }
 
     Ok(())

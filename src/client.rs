@@ -1,4 +1,5 @@
 use anyhow::Result;
+use reqwest::get;
 
 use crate::Metadata;
 
@@ -7,15 +8,15 @@ use crate::Metadata;
 pub struct Client {}
 
 impl Client {
-    pub fn get() -> Result<Metadata> {
-        let response = ureq::get("https://speed.cloudflare.com/__down?bytes=0").call()?;
+    pub async fn get() -> Result<Metadata> {
+        let response = get("https://speed.cloudflare.com/__down?bytes=0").await?;
 
         Metadata::try_from(
             &response
-                .headers_names()
+                .headers()
                 .iter()
-                .filter(|k| k.as_str().starts_with("cf-"))
-                .map(|k| (k.to_string(), response.header(k).unwrap().to_string()))
+                .filter(|(k, _)| k.as_str().starts_with("cf-"))
+                .map(|(k, v)| (k.to_string(), v.to_str().unwrap().to_string()))
                 .collect::<_>(),
         )
     }
@@ -23,11 +24,9 @@ impl Client {
 
 #[cfg(test)]
 mod tests {
-    use crate::client::Client;
-
-    #[test]
-    fn test() {
-        let metadata = Client::get().unwrap();
-        assert!(metadata.ip_address.is_some());
+    #[tokio::test]
+    async fn test() {
+        let metadata = crate::Client::get().await.unwrap();
+        assert!(metadata.ip_address.is_ipv4() || metadata.ip_address.is_ipv6());
     }
 }

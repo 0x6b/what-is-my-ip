@@ -9,6 +9,7 @@ path = "src/lib.rs"
 
 [dependencies]
 anyhow = "1.0.93"
-ureq = "2.7.1"
 jiff = "0.1.15"
 clap = { version = "4.5.21", features = ["derive"] }
+reqwest = "0.12.9"
+tokio = { version = "1.41.1", features = ["macros", "rt"] }
