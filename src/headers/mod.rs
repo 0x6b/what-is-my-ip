@@ -10,11 +10,11 @@ pub use autonomous_system::Number as Asn;
 pub use coordinate::Coordinate;
 pub use time_zone::TimeZone;
 
-pub struct Headers {
+pub struct ResponseHeaderMap {
     inner: HashMap<String, String>,
 }
 
-impl Deref for Headers {
+impl Deref for ResponseHeaderMap {
     type Target = HashMap<String, String>;
 
     fn deref(&self) -> &Self::Target {
@@ -22,7 +22,7 @@ impl Deref for Headers {
     }
 }
 
-impl FromIterator<(String, String)> for Headers {
+impl FromIterator<(String, String)> for ResponseHeaderMap {
     fn from_iter<I>(iter: I) -> Self
     where
         I: IntoIterator<Item = (String, String)>,
@@ -31,7 +31,7 @@ impl FromIterator<(String, String)> for Headers {
     }
 }
 
-impl Headers {
+impl ResponseHeaderMap {
     pub fn get<T>(&self, name: &str) -> Result<T>
     where
         T: FromStr,

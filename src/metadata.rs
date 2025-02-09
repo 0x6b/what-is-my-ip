@@ -4,7 +4,7 @@ use anyhow::{Error, Result};
 
 use crate::{
     headers::{Asn, Coordinate, TimeZone},
-    Headers,
+    ResponseHeaderMap,
 };
 
 /// Metadata contains the metadata returned by the Cloudflare.
@@ -52,10 +52,10 @@ impl Display for Metadata {
     }
 }
 
-impl TryFrom<&Headers> for Metadata {
+impl TryFrom<&ResponseHeaderMap> for Metadata {
     type Error = Error;
 
-    fn try_from(headers: &Headers) -> Result<Self, Self::Error> {
+    fn try_from(headers: &ResponseHeaderMap) -> Result<Self, Self::Error> {
         Ok(Self {
             coordinate: Coordinate::from((
                 headers.get::<f64>("latitude")?,

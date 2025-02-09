@@ -3,5 +3,5 @@ mod headers;
 mod metadata;
 
 pub use client::Client;
-use headers::Headers;
+use headers::ResponseHeaderMap;
 use metadata::Metadata;
