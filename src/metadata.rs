@@ -2,7 +2,10 @@ use std::{fmt, fmt::Display, net::IpAddr};
 
 use anyhow::{Error, Result};
 
-use crate::{Coordinate, Headers, TimeZone};
+use crate::{
+    headers::{Asn, Coordinate, TimeZone},
+    ResponseHeaderMap,
+};
 
 /// Metadata contains the metadata returned by the Cloudflare.
 #[derive(Debug, Clone)]
@@ -20,7 +23,7 @@ pub struct Metadata {
     pub country: String,
 
     /// ASN of the client.
-    pub asn: String,
+    pub asn: Asn,
 
     /// Timezone of the client.
     pub time_zone: TimeZone,
@@ -49,16 +52,19 @@ impl Display for Metadata {
     }
 }
 
-impl TryFrom<&Headers> for Metadata {
+impl TryFrom<&ResponseHeaderMap> for Metadata {
     type Error = Error;
 
-    fn try_from(headers: &Headers) -> Result<Self, Self::Error> {
+    fn try_from(headers: &ResponseHeaderMap) -> Result<Self, Self::Error> {
         Ok(Self {
-            coordinate: (headers.get::<f64>("latitude")?, headers.get::<f64>("longitude")?).into(),
-            ip_address: headers.get::<IpAddr>("ip").unwrap_or(IpAddr::from([0, 0, 0, 0])),
+            coordinate: Coordinate::from((
+                headers.get::<f64>("latitude")?,
+                headers.get::<f64>("longitude")?,
+            )),
+            ip_address: headers.get::<IpAddr>("ip")?,
             city: headers.get::<String>("city")?,
             country: headers.get::<String>("country")?,
-            asn: format!("AS{}", headers.get::<String>("asn")?),
+            asn: Asn::try_from(headers.get::<u32>("asn")?)?,
             time_zone: headers.get::<TimeZone>("timezone")?,
             request_time: headers.get::<i64>("request-time")?,
         })

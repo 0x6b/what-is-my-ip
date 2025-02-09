@@ -1,12 +1,7 @@
-mod coordinate;
+mod client;
 mod headers;
 mod metadata;
-mod time_zone;
-
-mod client;
 
 pub use client::Client;
-use coordinate::Coordinate;
-use headers::Headers;
+use headers::ResponseHeaderMap;
 use metadata::Metadata;
-use time_zone::TimeZone;

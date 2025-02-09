@@ -1,6 +1,6 @@
 [package]
 name = "what-is-my-ip"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 
 [lib]
@@ -8,8 +8,8 @@ name = "what_is_my_ip"
 path = "src/lib.rs"
 
 [dependencies]
-anyhow = "1.0.93"
-jiff = "0.1.15"
-clap = { version = "4.5.21", features = ["derive"] }
-reqwest = "0.12.9"
-tokio = { version = "1.41.1", features = ["macros", "rt"] }
+anyhow = "1.0.95"
+jiff = "0.1.29"
+clap = { version = "4.5.28", features = ["derive"] }
+reqwest = "0.12.12"
+tokio = { version = "1.43.0", features = ["macros", "rt"] }
