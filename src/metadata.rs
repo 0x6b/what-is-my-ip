@@ -2,7 +2,10 @@ use std::{fmt, fmt::Display, net::IpAddr};
 
 use anyhow::{Error, Result};
 
-use crate::{Asn, Coordinate, Headers, TimeZone};
+use crate::{
+    headers::{Asn, Coordinate, TimeZone},
+    Headers,
+};
 
 /// Metadata contains the metadata returned by the Cloudflare.
 #[derive(Debug, Clone)]
