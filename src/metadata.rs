@@ -54,11 +54,14 @@ impl TryFrom<&Headers> for Metadata {
 
     fn try_from(headers: &Headers) -> Result<Self, Self::Error> {
         Ok(Self {
-            coordinate: (headers.get::<f64>("latitude")?, headers.get::<f64>("longitude")?).into(),
-            ip_address: headers.get::<IpAddr>("ip").unwrap_or(IpAddr::from([0, 0, 0, 0])),
+            coordinate: Coordinate::from((
+                headers.get::<f64>("latitude")?,
+                headers.get::<f64>("longitude")?,
+            )),
+            ip_address: headers.get::<IpAddr>("ip")?,
             city: headers.get::<String>("city")?,
             country: headers.get::<String>("country")?,
-            asn: headers.get::<u32>("asn")?.try_into()?,
+            asn: Asn::try_from(headers.get::<u32>("asn")?)?,
             time_zone: headers.get::<TimeZone>("timezone")?,
             request_time: headers.get::<i64>("request-time")?,
         })
