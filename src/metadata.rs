@@ -2,7 +2,7 @@ use std::{fmt, fmt::Display, net::IpAddr};
 
 use anyhow::{Error, Result};
 
-use crate::{Coordinate, Headers, TimeZone};
+use crate::{Asn, Coordinate, Headers, TimeZone};
 
 /// Metadata contains the metadata returned by the Cloudflare.
 #[derive(Debug, Clone)]
@@ -20,7 +20,7 @@ pub struct Metadata {
     pub country: String,
 
     /// ASN of the client.
-    pub asn: String,
+    pub asn: Asn,
 
     /// Timezone of the client.
     pub time_zone: TimeZone,
@@ -58,7 +58,7 @@ impl TryFrom<&Headers> for Metadata {
             ip_address: headers.get::<IpAddr>("ip").unwrap_or(IpAddr::from([0, 0, 0, 0])),
             city: headers.get::<String>("city")?,
             country: headers.get::<String>("country")?,
-            asn: format!("AS{}", headers.get::<String>("asn")?),
+            asn: headers.get::<u32>("asn")?.try_into()?,
             time_zone: headers.get::<TimeZone>("timezone")?,
             request_time: headers.get::<i64>("request-time")?,
         })
